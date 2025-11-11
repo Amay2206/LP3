@@ -1,83 +1,91 @@
 // DAA_Huffman.cpp
-#include <bits/stdc++.h>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <queue>
 using namespace std;
 
 // Node structure for Huffman tree
 struct Node {
-  char ch;
-  int freq;
-  Node *left, *right;
+    char ch;
+    int freq;
+    Node *left, *right;
 
-  Node(char c, int f) : ch(c), freq(f), left(nullptr), right(nullptr) {}
-  Node(int f, Node *l, Node *r) : ch('\0'), freq(f), left(l), right(r) {}
+    Node(char c, int f) : ch(c), freq(f), left(nullptr), right(nullptr) {}
+    Node(int f, Node *l, Node *r) : ch('\0'), freq(f), left(l), right(r) {}
 };
 
 // Custom comparator for priority queue (min-heap)
 struct Compare {
-  bool operator()(Node *a, Node *b) { return a->freq > b->freq; }
+    bool operator()(Node *a, Node *b) {
+        return a->freq > b->freq;
+    }
 };
 
 // Recursive function to generate Huffman codes
 void generateCodes(Node *root, string code,
                    unordered_map<char, string> &huffmanCode) {
-  if (!root)
-    return;
 
-  // Leaf node — store the code
-  if (!root->left && !root->right) {
-    huffmanCode[root->ch] = code;
-    return;
-  }
+    if (!root) return;
 
-  generateCodes(root->left, code + "0", huffmanCode);
-  generateCodes(root->right, code + "1", huffmanCode);
+    // Leaf node → store the code
+    if (!root->left && !root->right) {
+        huffmanCode[root->ch] = code;
+        return;
+    }
+
+    generateCodes(root->left, code + "0", huffmanCode);
+    generateCodes(root->right, code + "1", huffmanCode);
 }
 
 int main() {
-  string text = "huffman coding example";
 
-  // Count frequency of each character
-  unordered_map<char, int> freq;
-  for (char ch : text)
-    freq[ch]++;
+    string text = "huffman coding example";
 
-  // Priority queue (min-heap) for building Huffman tree
-  priority_queue<Node *, vector<Node *>, Compare> pq;
+    // Count frequency of each character
+    unordered_map<char, int> freq;
+    for (char ch : text) {
+        freq[ch]++;
+    }
 
-  // Create a leaf node for each character
-  for (auto &[ch, f] : freq)
-    pq.push(new Node(ch, f));
+    // Priority queue for building Huffman tree
+    priority_queue<Node *, vector<Node *>, Compare> pq;
 
-  // Build the Huffman tree
-  while (pq.size() > 1) {
-    Node *left = pq.top();
-    pq.pop();
-    Node *right = pq.top();
-    pq.pop();
+    // Create leaf nodes and push in pq
+    for (auto it = freq.begin(); it != freq.end(); it++) {
+        pq.push(new Node(it->first, it->second));
+    }
 
-    Node *parent = new Node(left->freq + right->freq, left, right);
-    pq.push(parent);
-  }
+    // Build Huffman tree
+    while (pq.size() > 1) {
+        Node *left = pq.top(); pq.pop();
+        Node *right = pq.top(); pq.pop();
 
-  // Root of Huffman Tree
-  Node *root = pq.top();
+        Node *parent = new Node(left->freq + right->freq, left, right);
+        pq.push(parent);
+    }
 
-  // Generate Huffman codes
-  unordered_map<char, string> huffmanCode;
-  generateCodes(root, "", huffmanCode);
+    // Root of Huffman Tree
+    Node *root = pq.top();
 
-  // Print the codes
-  cout << "Huffman Codes:\n";
-  for (auto &[ch, code] : huffmanCode)
-    cout << ch << " : " << code << "\n";
+    // Generate Huffman codes
+    unordered_map<char, string> huffmanCode;
+    generateCodes(root, "", huffmanCode);
 
-  // Encode the input text
-  string encoded;
-  for (char ch : text)
-    encoded += huffmanCode[ch];
+    // Display codes
+    cout << "Huffman Codes:\n";
+    for (auto it = huffmanCode.begin(); it != huffmanCode.end(); it++) {
+        cout << it->first << " : " << it->second << "\n";
+    }
 
-  cout << "\nOriginal text: " << text << endl;
-  cout << "Encoded text: " << encoded << endl;
+    // Encode text
+    string encoded = "";
+    for (char ch : text) {
+        encoded += huffmanCode[ch];
+    }
 
-  return 0;
+    cout << "\nOriginal text: " << text << endl;
+    cout << "Encoded text : " << encoded << endl;
+
+    return 0;
 }
